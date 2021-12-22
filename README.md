@@ -1,24 +1,5 @@
-# stop-auto-win-update
+# Stopawu
 
-## Project setup
-```
-yarn install
-```
+Easily disable Windows automatic updates
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+![A screenshot of Stopawu](images/screenshot.png)
