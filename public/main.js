@@ -41,6 +41,9 @@ const UPDATE_PATH =
   'HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU';
 const VALUE_PATH = 'NoAutoUpdate';
 
+const vbsDir = path.join(path.dirname(app.getPath('exe')), 'resources/regedit/vbs');
+regedit.setExternalVBSLocation(vbsDir);
+
 ipcMain.on('enable-wu', (event) => {
   regedit.deleteValue(`${UPDATE_PATH}\\${VALUE_PATH}`, (err) => {
     const error = {};

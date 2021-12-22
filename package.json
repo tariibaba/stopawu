@@ -1,15 +1,23 @@
 {
-  "name": "stop-auto-win-update",
-  "version": "0.1.0",
+  "name": "stopawu",
+  "version": "1.0.0",
   "private": true,
+  "productName": "Stopawu",
+  "author": "Ayibatari Ibaba <tariibabadev@gmail.com>",
+  "description": "Easily disable automatic Windows updates",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "prepack": "yarn build",
+    "predist": "yarn build"
   },
-  "main": "public/main.js",
+  "main": "build/main.js",
   "dependencies": {
+    "@electron/remote": "^2.0.1",
     "core-js": "^3.6.5",
     "electron-shutdown-command": "^2.0.1",
     "regedit": "^5.0.0",
@@ -17,12 +25,12 @@
     "vuetify": "^2.4.0"
   },
   "devDependencies": {
-    "@electron/remote": "^2.0.1",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
     "electron": "^16.0.4",
+    "electron-builder": "^22.14.5",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "sass": "~1.32.0",
@@ -51,5 +59,38 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "build": {
+    "appId": "com.tariibaba.stopawu",
+    "productName": "Stopawu",
+    "icon": "images/app-icon.png",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/regedit/vbs",
+        "to": "regedit/vbs",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
 }
