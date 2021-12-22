@@ -2,16 +2,19 @@
   "name": "stop-auto-win-update",
   "version": "0.1.0",
   "private": true,
-  "main": "public/main.js",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "start": "electron ."
   },
+  "main": "public/main.js",
   "dependencies": {
     "core-js": "^3.6.5",
-    "vue": "^2.6.11"
+    "electron-shutdown-command": "^2.0.1",
+    "regedit": "^5.0.0",
+    "vue": "^2.6.11",
+    "vuetify": "^2.4.0"
   },
   "devDependencies": {
     "@electron/remote": "^2.0.1",
@@ -22,7 +25,11 @@
     "electron": "^16.0.4",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
-    "vue-template-compiler": "^2.6.11"
+    "sass": "~1.32.0",
+    "sass-loader": "^10.0.0",
+    "vue-cli-plugin-vuetify": "~2.4.5",
+    "vue-template-compiler": "^2.6.11",
+    "vuetify-loader": "^1.7.0"
   },
   "eslintConfig": {
     "root": true,
