@@ -40,6 +40,9 @@
             <v-switch
               label="Disable updates (registry)"
               @change="handleDisableUpdates"
+              :disabled="
+                this.updateStatus === 'loading' || this.isChangingUpdateStatus
+              "
               :loading="
                 (this.updateStatus === 'loading' ||
                   this.isChangingUpdateStatus) &&
