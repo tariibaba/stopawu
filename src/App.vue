@@ -1,79 +1,85 @@
 <template>
-  <v-app id="app">
-    <v-progress-circular
-      v-if="
-        this.isChangingUpdateStatus ||
-        this.isChangingUpdateServicePreventionStatus
-      "
-      indeterminate
-      color="primary"
-    />
-    <div style="display: flex; flex-flow: column; align-items: center">
-      <div style="display: flex; flex-flow: row; align-items: center">
-        Disabled updates:&nbsp;
-        <v-progress-circular
-          v-if="this.updateStatus === 'loading'"
-          indeterminate
-          color="primary"
-          :size="20"
-          :width="2"
-        />
-        <span style="font-weight: bold; color: #1f75f7">{{
-          updatesDisabled ? 'Yes' : 'No'
-        }}</span>
-      </div>
-
-      <v-btn
-        @click="disableUpdatesRegistry()"
-        color="primary"
-        :disabled="isChangingUpdateStatus"
-        >{{ updatesDisabled ? 'Enable' : 'Disable' }} updates (registry)</v-btn
-      >
-    </div>
-
+  <v-app id="app" style="height: 100%">
     <div
       style="
-        margin-top: 32px;
         display: flex;
-        flex-flow: column;
-        align-items: center;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        flex-grow: 1;
       "
     >
-      <div style="display: flex; flex-flow: row; align-items: center">
-        Preventing update services:&nbsp;
-        <span style="font-weight: bold; color: #1f75f7">{{
-          isPreventingUpdateServices ? 'Yes' : 'No'
-        }}</span>
-      </div>
-      <v-btn
-        @click="
-          isPreventingUpdateServices
-            ? allowUpdateServices()
-            : preventUpdateServices()
+      <div
+        class="options-panel"
+        style="
+          display: flex;
+          box-sizing: border-box;
+          padding-left: 16px;
+          padding-right: 16px;
+          justify-content: center;
         "
-        color="primary"
-        class="mt-2"
-        >{{
-          isPreventingUpdateServices
-            ? 'Allow update services'
-            : 'Prevent update services (recurring)'
-        }}</v-btn
       >
-    </div>
+        <div style="display: flex; flex-flow: column; align-items: center">
+          Prevented update services
+          <span style="font-size: 2em; font-weight: bold; color: #1f75f7">{{
+            preventServiceCount
+          }}</span>
+          times
+        </div>
+      </div>
+      <div
+        style="
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        "
+      >
+        <div style="display: flex; flex-flow: column; align-items: center">
+          <div>
+            <v-switch
+              label="Disable updates (registry)"
+              @change="handleDisableUpdates"
+              :loading="
+                (this.updateStatus === 'loading' ||
+                  this.isChangingUpdateStatus) &&
+                'primary'
+              "
+              :value="updatesDisabled"
+            ></v-switch>
 
-    <v-dialog v-model="showModal" persistent max-width="290">
-      <v-card>
-        <v-card-text class="pt-4"
-          >{{ updatesDisabled ? 'Disabled ' : 'Enabled ' }} updates
-          successfully. Restart to apply the changes.</v-card-text
-        >
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="showModal = false">Okay</v-btn>
-          <v-btn color="primary" @click="restart">Restart</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            <v-switch
+              label="
+        Prevent update services
+      "
+              @change="handlePreventUpdates"
+              :value="isPreventingUpdateServices"
+              color="primary"
+            ></v-switch>
+
+            <v-switch
+              @change="handleOpenAtLogin"
+              :value="openAtLogin"
+              label="Run at startup"
+              style="margin-left: auto"
+            ></v-switch>
+          </div>
+        </div>
+        <v-dialog v-model="showModal" persistent max-width="290">
+          <v-card>
+            <v-card-text class="pt-4"
+              >{{ updatesDisabled ? 'Disabled ' : 'Enabled ' }} updates
+              successfully. Restart to apply the changes.</v-card-text
+            >
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text @click="showModal = false">Okay</v-btn>
+              <v-btn color="primary" @click="restart">Restart</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </div>
+    </div>
   </v-app>
 </template>
 
@@ -93,10 +99,26 @@ export default {
     updateStatus: 'loading',
     isPreventingUpdateServices: false,
     isChangingUpdateServicePreventionStatus: false,
+    preventServiceCount: 0,
+    openAtLogin: false,
   }),
 
   methods: {
-    disableUpdatesRegistry() {
+    handleDisableUpdates() {
+      this.enableOrDisableUpdatesRegistry();
+    },
+    handleOpenAtLogin() {
+      console.log('handling here..');
+      this.openAtLogin = !this.openAtLogin;
+      ipcRenderer.send('open-at-login', this.openAtLogin);
+    },
+    handlePreventUpdates() {
+      this.isPreventingUpdateServices
+        ? this.allowUpdateServices()
+        : this.preventUpdateServices();
+      this.isPreventingUpdateServices = !this.isPreventingUpdateServices;
+    },
+    enableOrDisableUpdatesRegistry() {
       this.isChangingUpdateStatus = true;
       if (this.updatesDisabled) {
         ipcRenderer.send('enable-wu', null);
@@ -143,13 +165,15 @@ export default {
       this.isPreventingUpdateServices = false;
       this.isChangingUpdateServicePreventionStatus = false;
     });
+    ipcRenderer.on('prevent-service-count', (event, { newCount }) => {
+      this.preventServiceCount = newCount;
+    });
     ipcRenderer.on('did-load-data', (event, data) => {
       console.log('did load data');
       console.log(data);
       this.isPreventingUpdateServices = data.isPreventingUpdateServices;
-      console.log(
-        `isPreventingUpdateServices: ${this.isPreventingUpdateServices}`
-      );
+      console.log(`preventServiceCount: ${data.preventServiceCount}`);
+      this.preventServiceCount = data.preventServiceCount;
     });
     ipcRenderer.send('is-wu-enabled');
     ipcRenderer.send('load-data');
@@ -171,5 +195,10 @@ export default {
 <style>
 html {
   overflow-y: hidden !important;
+}
+
+.v-application--wrap {
+  height: 100%;
+  display: flex;
 }
 </style>

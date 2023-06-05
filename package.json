@@ -10,9 +10,9 @@
     "lint": "vue-cli-service lint",
     "dist": "npm run build && electron-builder",
     "pack": "npm run build && electron-builder --dir",
-    "start": "concurrently \"npm:start-vue\" \"npm:start-electron\"",
+    "start": "concurrently \"npm run start-vue\" \"npm run start-electron\"",
     "start-electron": "wait-on http://localhost:8080 && nodemon --watch public --exec \"electron .\"",
-    "start-vue": "npm serve"
+    "start-vue": "npm run serve"
   },
   "main": "public/main.js",
   "dependencies": {

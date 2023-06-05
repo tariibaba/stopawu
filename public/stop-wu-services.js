@@ -9,43 +9,55 @@ let interval = undefined;
 let startInterval = false;
 
 async function stopServices() {
-  await new Promise((resolve, reject) => {
+  let didAlreadyStop = true;
+  await new Promise((resolve) => {
+    let executedCount = 0;
     services.forEach((service) => {
       exec(`${stopCommand} ${service}`, (error, stdout, stderr) => {
+        const isLast = executedCount === services.length - 1;
         if (error) {
           const message = `Error stopping ${service}: ${error.message}`;
           console.error(message);
-          reject({ message });
+          didAlreadyStop = message.includes('service is not started');
+          if (isLast) {
+            resolve();
+          }
+          executedCount++;
+          return;
         }
         if (stderr) {
-          const message = `Error stopping ${service}: ${stderr}`;
+          const message = `Error stopping ${service} (stderr): ${stderr}`;
           console.error(message);
-          reject({ message });
+          didAlreadyStop = message.includes('service is not started');
+          if (isLast) {
+            resolve();
+          }
+          executedCount++;
+          return;
         }
         console.log(`Stopped ${service}: ${stdout}`);
+        didAlreadyStop = false;
         resolve();
       });
     });
   });
+  return didAlreadyStop;
 }
 
-async function startServiceStopInterval() {
-  console.log('startServiceStopInterval');
-  stopServices();
+async function startServiceStopInterval(params) {
+  const { onTryDidStop } = params;
   let intervalTime = 60000;
   startInterval = true;
   while (true) {
     if (!startInterval) {
       break;
     }
-    console.log(`intervalTime: ${intervalTime}`);
-    await new Promise((resolve) => setTimeout(resolve, intervalTime));
-    try {
-      await stopServices();
-      intervalTime = 5000;
-    } catch {
-      intervalTime = 60000;
+    const didAlreadyStop = await stopServices();
+    if (onTryDidStop) {
+      onTryDidStop({ didAlreadyStop });
     }
+    intervalTime = didAlreadyStop ? 5000 : 5000;
+    await new Promise((resolve) => setTimeout(resolve, intervalTime));
   }
 }
 

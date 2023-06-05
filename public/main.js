@@ -25,6 +25,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    show: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -38,6 +39,10 @@ function createWindow() {
   mainWindow.loadURL(app.isPackaged ? indexHtmlUrl : 'http://localhost:8080');
 
   if (app.isPackaged) mainWindow.setMenu(null);
+
+  if (!process.argv.includes('--hidden')) {
+    mainWindow.show();
+  }
 }
 
 function createTray() {
@@ -123,11 +128,16 @@ ipcMain.on('save-data', (event, data) => {
 ipcMain.on('load-data', (event) => {
   const data = store.store ?? {};
   if (data.isPreventingUpdateServices) {
-    startServiceStopInterval();
+    startAndListenForServiceStopInterval();
   } else {
     endServiceStopInterval();
   }
-  event.reply('did-load-data', data);
+  const defaultData = {
+    isPreventingUpdateServices: false,
+    preventServiceCount: 0,
+  };
+  const completeData = { ...defaultData, ...data };
+  event.reply('did-load-data', completeData);
 });
 
 ipcMain.on('disable-wu', (event) => {
@@ -162,13 +172,35 @@ ipcMain.on('disable-wu', (event) => {
 });
 
 ipcMain.on('prevent-update-services', (event) => {
-  startServiceStopInterval();
-  store.set({ isPreventingUpdateServices: true });
+  startAndListenForServiceStopInterval();
+  store.set({ ...store.store, isPreventingUpdateServices: true });
   event.reply('prevent-update-services');
 });
 
+function startAndListenForServiceStopInterval() {
+  startServiceStopInterval({
+    onTryDidStop: ({ didAlreadyStop }) => {
+      if (didAlreadyStop) return;
+      const newCount = (store.store.preventServiceCount ?? 0) + 1;
+      mainWindow.webContents.send('prevent-service-count', { newCount });
+      store.set({
+        ...store.store,
+        preventServiceCount: newCount,
+      });
+    },
+  });
+}
+
 ipcMain.on('allow-update-services', (event) => {
   endServiceStopInterval();
-  store.set({ isPreventingUpdateServices: false });
+  store.set({ ...store.store, isPreventingUpdateServices: false });
   event.reply('allow-update-services');
+});
+
+ipcMain.on('open-at-login', (event, value) => {
+  console.log('set open at login, value: ', value);
+  app.setLoginItemSettings({
+    openAtLogin: value,
+    args: ['--hidden'],
+  });
 });
