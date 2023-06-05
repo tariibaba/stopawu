@@ -14,7 +14,7 @@
     "start-electron": "wait-on http://localhost:8080 && nodemon --watch public --exec \"electron .\"",
     "start-vue": "npm run serve"
   },
-  "main": "public/main.js",
+  "main": "build/main.js",
   "dependencies": {
     "@electron/remote": "^2.0.1",
     "autoprefixer": "^10",
