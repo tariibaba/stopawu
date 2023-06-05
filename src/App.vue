@@ -1,13 +1,66 @@
 <template>
   <v-app id="app">
-    <v-btn @click="buttonClick()" color="primary"
-      >{{ updatesDisabled ? 'Enable' : 'Disable' }} updates</v-btn
-    >
     <v-progress-circular
-      v-bind:class="{ 'progress-invisible': !this.loading }"
+      v-if="
+        this.isChangingUpdateStatus ||
+        this.isChangingUpdateServicePreventionStatus
+      "
       indeterminate
       color="primary"
     />
+    <div style="display: flex; flex-flow: column; align-items: center">
+      <div style="display: flex; flex-flow: row; align-items: center">
+        Disabled updates:&nbsp;
+        <v-progress-circular
+          v-if="this.updateStatus === 'loading'"
+          indeterminate
+          color="primary"
+          :size="20"
+          :width="2"
+        />
+        <span style="font-weight: bold; color: #1f75f7">{{
+          updatesDisabled ? 'Yes' : 'No'
+        }}</span>
+      </div>
+
+      <v-btn
+        @click="disableUpdatesRegistry()"
+        color="primary"
+        :disabled="isChangingUpdateStatus"
+        >{{ updatesDisabled ? 'Enable' : 'Disable' }} updates (registry)</v-btn
+      >
+    </div>
+
+    <div
+      style="
+        margin-top: 32px;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+      "
+    >
+      <div style="display: flex; flex-flow: row; align-items: center">
+        Preventing update services:&nbsp;
+        <span style="font-weight: bold; color: #1f75f7">{{
+          isPreventingUpdateServices ? 'Yes' : 'No'
+        }}</span>
+      </div>
+      <v-btn
+        @click="
+          isPreventingUpdateServices
+            ? allowUpdateServices()
+            : preventUpdateServices()
+        "
+        color="primary"
+        class="mt-2"
+        >{{
+          isPreventingUpdateServices
+            ? 'Allow update services'
+            : 'Prevent update services (recurring)'
+        }}</v-btn
+      >
+    </div>
+
     <v-dialog v-model="showModal" persistent max-width="290">
       <v-card>
         <v-card-text class="pt-4"
@@ -35,18 +88,29 @@ export default {
 
   data: () => ({
     updatesDisabled: false,
-    loading: false,
+    isChangingUpdateStatus: false,
     showModal: false,
+    updateStatus: 'loading',
+    isPreventingUpdateServices: false,
+    isChangingUpdateServicePreventionStatus: false,
   }),
 
   methods: {
-    buttonClick() {
-      this.loading = true;
+    disableUpdatesRegistry() {
+      this.isChangingUpdateStatus = true;
       if (this.updatesDisabled) {
         ipcRenderer.send('enable-wu', null);
       } else {
         ipcRenderer.send('disable-wu', null);
       }
+    },
+    preventUpdateServices() {
+      this.isChangingUpdateServicePreventionStatus = true;
+      ipcRenderer.send('prevent-update-services', null);
+    },
+    allowUpdateServices() {
+      this.isChangingUpdateServicePreventionStatus = true;
+      ipcRenderer.send('allow-update-services', null);
     },
     restart() {
       this.showModal = false;
@@ -59,12 +123,36 @@ export default {
       this.loading = false;
       this.updatesDisabled = true;
       this.showModal = true;
+      this.isChangingUpdateStatus = false;
     });
     ipcRenderer.on('enable-wu', () => {
       this.loading = false;
       this.updatesDisabled = false;
       this.showModal = true;
+      this.isChangingUpdateStatus = false;
     });
+    ipcRenderer.on('is-wu-enabled', (event, arg) => {
+      this.updateStatus = 'success';
+      this.updatesDisabled = !arg.status;
+    });
+    ipcRenderer.on('prevent-update-services', () => {
+      this.isPreventingUpdateServices = true;
+      this.isChangingUpdateServicePreventionStatus = false;
+    });
+    ipcRenderer.on('allow-update-services', () => {
+      this.isPreventingUpdateServices = false;
+      this.isChangingUpdateServicePreventionStatus = false;
+    });
+    ipcRenderer.on('did-load-data', (event, data) => {
+      console.log('did load data');
+      console.log(data);
+      this.isPreventingUpdateServices = data.isPreventingUpdateServices;
+      console.log(
+        `isPreventingUpdateServices: ${this.isPreventingUpdateServices}`
+      );
+    });
+    ipcRenderer.send('is-wu-enabled');
+    ipcRenderer.send('load-data');
   },
 };
 </script>

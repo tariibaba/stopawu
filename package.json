@@ -1,26 +1,29 @@
 {
   "name": "stopawu",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "productName": "Stopawu",
-  "author": "Ayibatari Ibaba <tariibabadev@gmail.com>",
   "description": "Easily disable automatic Windows updates",
+  "author": "Ayibatari Ibaba <tariibabadev@gmail.com>",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "start": "electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "prepack": "yarn build",
-    "predist": "yarn build"
+    "dist": "npm run build && electron-builder",
+    "pack": "npm run build && electron-builder --dir",
+    "start": "concurrently \"npm:start-vue\" \"npm:start-electron\"",
+    "start-electron": "wait-on http://localhost:8080 && nodemon --watch public --exec \"electron .\"",
+    "start-vue": "npm serve"
   },
-  "main": "build/main.js",
+  "main": "public/main.js",
   "dependencies": {
     "@electron/remote": "^2.0.1",
+    "autoprefixer": "^10",
+    "await-timeout": "^1.1.1",
     "core-js": "^3.6.5",
     "electron-shutdown-command": "^2.0.1",
-    "regedit": "^5.0.0",
+    "electron-store": "^8.1.0",
+    "regedit": "^5.1.2",
+    "sudo-prompt": "^9.2.1",
     "vue": "^2.6.11",
     "vuetify": "^2.4.0"
   },
@@ -29,15 +32,19 @@
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
+    "concurrently": "^8.0.1",
     "electron": "^16.0.4",
     "electron-builder": "^22.14.5",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "nodemon": "^2.0.22",
     "sass": "~1.32.0",
     "sass-loader": "^10.0.0",
+    "vue-cli-plugin-tailwind": "~3.0.0",
     "vue-cli-plugin-vuetify": "~2.4.5",
     "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.7.0"
+    "vuetify-loader": "^1.7.0",
+    "wait-on": "^7.0.1"
   },
   "eslintConfig": {
     "root": true,
@@ -88,5 +95,6 @@
         ]
       }
     ]
-  }
+  },
+  "productName": "Stopawu"
 }
