@@ -48,21 +48,22 @@
                   this.isChangingUpdateStatus) &&
                 'primary'
               "
-              :value="updatesDisabled"
+              :model-value="updatesDisabled"
+              @update:modelValue="handleDisableUpdates"
             ></v-switch>
 
             <v-switch
               label="
         Prevent update services
       "
-              @change="handlePreventUpdates"
-              :value="isPreventingUpdateServices"
+              @update:modelValue="handlePreventUpdates"
+              :model-value="isPreventingUpdateServices"
               color="primary"
             ></v-switch>
 
             <v-switch
-              @change="handleOpenAtLogin"
-              :value="openAtLogin"
+              @update:modelValue="handleOpenAtLogin"
+              :model-value="openAtLogin"
               label="Run at startup"
               style="margin-left: auto"
             ></v-switch>

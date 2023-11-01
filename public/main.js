@@ -11,6 +11,8 @@ const {
 } = require('./stop-wu-services');
 const Store = require('electron-store');
 
+if (require('electron-squirrel-startup')) app.quit();
+
 electronRemote.initialize();
 
 let tray = null;
