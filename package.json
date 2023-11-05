@@ -12,9 +12,10 @@
     "dist": "npm run build && electron-builder",
     "pack": "npm run build && electron-builder --dir",
     "start-electron": "wait-on http://localhost:8080 && nodemon --watch public --exec \"electron .\"",
+    "watch-electron": "nodemon --watch public --exec \"electron .\"",
     "start-vue": "npm run serve"
   },
-  "main": "public/main.js",
+  "main": "dist/electron.js",
   "dependencies": {
     "@electron/remote": "^2.0.1",
     "autoprefixer": "^10",
@@ -42,7 +43,6 @@
     "sass-loader": "^10.0.0",
     "vite": "^4.5.0",
     "vue": "^3.3.7",
-    "vuetify-loader": "^1.7.0",
     "wait-on": "^7.0.1"
   },
   "eslintConfig": {
@@ -71,7 +71,7 @@
     "productName": "Stopawu",
     "icon": "images/app-icon.png",
     "files": [
-      "build/**/*",
+      "dist/**/*",
       "node_modules/**/*"
     ],
     "directories": {
